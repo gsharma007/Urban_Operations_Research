@@ -8,3 +8,12 @@ Main Assumptions:
 3. Drone travel times are symmetric
 4. The truck can wait only on nodes (delivery points) to launch or receive drones 
 5. Drones travel at a constant speed with linear battery consumption
+
+Modeling approach:
+
+The aforedescribed problem structure can be broken up into smaller linked sub-problems to be solved (since the sequence of nodes is fixed)
+Dynamic Programming is a systematic technique for solving Multistage Decision problems.
+Dynamic programming (DP) describes a process in terms of states, stages, decisions, transitions and returns.
+The process begins in some initial state where a decision is made
+The decision causes a transition to a new state.
+Based on the starting state, ending state and decision a return is realized. The process continues through a sequence of states until a final state is reached.
