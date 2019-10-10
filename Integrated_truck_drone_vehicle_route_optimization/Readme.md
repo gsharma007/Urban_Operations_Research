@@ -1,4 +1,5 @@
 Problem Description: 
+
 A dispatch center(origin) has to deliver the parcels to n different predetermined customers/nodes using a brand-new integrated vehicle in Tempe. The vehicle starts from the origin and must return to the origin at the end of the trip. The center owner’s objective is to reduce total travel time as compared to the time in the truck-only scenario while using the traditional VRP routes. The drone and truck can deliver different parcels at the same time. The drone takes off from the truck and meets it after delivering one parcel, later in the route before leaving for the next possible delivery.
 
 Main Assumptions:
