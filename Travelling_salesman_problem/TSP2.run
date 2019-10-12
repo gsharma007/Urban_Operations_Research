@@ -1,0 +1,97 @@
+model TSP.mod;
+data TSP.dat;
+option solver cplex, solution_round 6;
+
+problem TSP_Opt: Cost, x, balance1, balance2, subtour;
+
+param root integer >=0;							# auxiliary parameter for subtour reconstruction
+param RSTAR{NODES, NODES} integer >=0;					# data structure that, for arc a=(i,j), stores 'a' in position (i,j)
+param STAR {NODES} integer >= 0;					# vector containing the next node to visit in the tour; if at node i, then the next node to visit is STAR[i]. 
+param processed {NODES} default 0;					# processed[i]=-1 means that node 'i' has already been processed by the subtour detection algorithm
+param nNodes_s integer >=0;						# auxiliary parameter to count the number of nodes in the subtour
+param next_node {NODES} default 0;
+param i3 integer >=0;
+param i7 integer >=0;
+param timer integer >=0;
+param H;
+param time;
+param Allowed_reach {NODES};
+param mu;
+param mu1 {NODES};
+param Var;
+param Var1 {NODES};
+
+for {a in ARCS} {							# initializing matrix RSTAR
+   let RSTAR[i[a],j[a]]:= a;
+}
+
+let nSubt:=0;								# initialize the number of subtours found
+let nNodes_s:=0;							# initialize the number of nodes in the subtour
+
+repeat {
+   solve TSP_Opt;							# solve the TSP problem
+   for {a in ARCS} {							# construct the STAR vector (vector of successors)
+      if round(x[a]) = 1 then {
+      	 let STAR[i[a]] := j[a];
+      };
+   };  
+   for {i1 in NODES} {
+      let processed[i1]:=0;						# initialize 'processed' array
+   };
+   for {i1 in 1..nNodes} {						# loop over all nodes
+       if processed[i1] >=0 then {					# if i1 has not been processed
+         let nNodes_s:= 1;						# the number of nodes for the subtour starting at i1 is 1 (= node i1)
+       	 let processed[i1] := -1;					# mark node i1 as processed
+       	 let nSubt:= nSubt +1;						# increase the subtour counter
+       	 for {a in ARCS} {
+       	    let SUBT_C[nSubt,a] :=0;					# initialize row 'nSubt' in the SUBT_C matrix
+       	 };
+       	 let SUBT_C[nSubt,RSTAR[i1,STAR[i1]]] :=1;			# add arc (i1,STAR[i1]) to subtour constraint nSubt
+       	 let root := STAR[i1];						# define root node as node STAR[i1]
+       	 repeat while root != i1 {					# repeat until the loop goes back to node i1
+       	    let processed[root]:=-1;					# mark node 'root' as processed
+       	    let SUBT_C[nSubt,RSTAR[root,STAR[root]]] :=1;		# add arc (root,STAR[root]) to subtour constraint nSubt
+       	    let root := STAR[root];					# update root to be STAR[root] (moving forward in the tour)
+       	    let nNodes_s:= nNodes_s+1;					# increase the number of nodes in the subtour
+       	 };
+       };
+   };
+   shell "pause";
+   display STAR;
+   if nNodes_s = nNodes then{						# Stopping condition (when a tour with nNodes is found)
+	  for {i1 in 1..nNodes} {
+         let next_node[i1]:=0;
+      };
+ #calculating_final_route_from_star_matrix
+      let i7 := 1;
+      let i3 := 1;
+ 	  repeat while i7 != nNodes+1 {
+         let next_node[i7] := STAR[i3];
+         let i3 := STAR[i3];
+         let i7 := i7 + 1;
+      };
+ #calculating_times_till_each_node 
+
+      for {p in 1..10} {
+         let mu := 0;
+         let Var := 0;
+         let H := 1;
+         let time := 0;
+         repeat while H != p {
+           let time := t[RSTAR[H,STAR[H]]] + time;
+           let mu := mu + t[RSTAR[H,STAR[H]]];
+           let Var := Var + 0.05*t[RSTAR[H,STAR[H]]];
+           let H := STAR[H];
+         };
+     let Allowed_reach[p] := time;
+     let mu1[p] := mu;
+     let Var1[p] := Var;
+     };
+#Adding time constraints to comply for 
+    if mu1[3]+1.645*Var1[3]<= 120 and mu1[6]+1.645*Var1[6] <= 90 and mu1[7]+1.645*Var1[7] <= 60 and mu1[9]+1.645*Var1[9] <= 45 then {
+     break;
+    };
+   };
+};
+
+display STAR;
