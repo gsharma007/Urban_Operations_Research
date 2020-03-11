@@ -14,7 +14,7 @@ var x5 integer;
 var x6 integer;
 var x7 integer;
 
-minimize cost: 30*x1+18*x2+21*x3+38*x4+20*x5+22*x6+9*x7;
+minimize Cost: 30*x1+18*x2+21*x3+38*x4+20*x5+22*x6+9*x7;
 
 subject to hour1: x1+x2 >= 1;
 subject to hour2: x1+x2 >= 1;
